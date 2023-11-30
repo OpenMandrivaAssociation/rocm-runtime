@@ -12,7 +12,7 @@ Release:    1
 Summary:    ROCm Runtime Library
 License:    NCSA
 URL:        https://github.com/RadeonOpenCompute/ROCR-Runtime
-Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/%{name}-%{version}.tar.gz
+Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/ROCR-Runtime-rocm-%{version}.tar.gz
 
 BuildRequires:  clang-devel
 BuildRequires:  cmake
