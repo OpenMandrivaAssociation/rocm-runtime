@@ -8,23 +8,20 @@
 
 Name:       rocm-runtime
 Version:    %{rocm_version}
-Release:    1%{?dist}
+Release:    1
 Summary:    ROCm Runtime Library
-
 License:    NCSA
 URL:        https://github.com/RadeonOpenCompute/ROCR-Runtime
 Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/%{name}-%{version}.tar.gz
 
-ExclusiveArch:  x86_64 aarch64 ppc64le
-
 BuildRequires:  clang-devel
 BuildRequires:  cmake
-BuildRequires:  elfutils-libelf-devel
+BuildRequires:  pkgconfig(libelf)
 BuildRequires:  hsakmt-devel
 BuildRequires:  hsakmt(rocm) = %{rocm_release}
-BuildRequires:  libdrm-devel
-BuildRequires:  libffi-devel
-BuildRequires:  lld
+BuildRequires:  pkgconfig(libdrm)
+BuildRequires:  pkgconfig(libffi)
+BuildRequires:  cmake(LLD)
 BuildRequires:  llvm-devel
 BuildRequires:  rocm-device-libs
 BuildRequires:  vim-common
@@ -44,7 +41,6 @@ Requires: hsakmt(rocm) = %{rocm_release}
 %description devel
 ROCm Runtime development files
 
-
 %prep
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
 
@@ -53,13 +49,11 @@ ROCm Runtime development files
     -DCMAKE_INSTALL_LIBDIR=%{_lib} \
     -DINCLUDE_PATH_COMPATIBILITY=OFF \
     %{?!enableimage:-DIMAGE_SUPPORT=OFF}
-%cmake_build
+%make_build
 
 
 %install
-%cmake_install
-
-%ldconfig_scriptlets
+%make_install -C build
 
 %files
 %doc README.md
