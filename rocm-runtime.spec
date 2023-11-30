@@ -17,8 +17,7 @@ Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/
 BuildRequires:  clang-devel
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(libelf)
-BuildRequires:  hsakmt-devel
-BuildRequires:  hsakmt(rocm) = %{rocm_release}
+BuildRequires:  pkgconfig(libhsakmt)
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libffi)
 BuildRequires:  cmake(LLD)
