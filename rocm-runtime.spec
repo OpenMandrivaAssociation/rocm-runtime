@@ -44,7 +44,8 @@ ROCm Runtime development files
 %autosetup -n ROCR-Runtime-rocm-%{version} -p1
 
 %build
-%cmake -S src -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+cd src
+%cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_LIBDIR=%{_lib} \
     -DINCLUDE_PATH_COMPATIBILITY=OFF \
     %{?!enableimage:-DIMAGE_SUPPORT=OFF}
