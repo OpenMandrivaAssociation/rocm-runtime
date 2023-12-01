@@ -25,6 +25,7 @@ BuildRequires:  cmake(LLD)
 BuildRequires:  llvm-devel
 BuildRequires:  rocm-device-libs
 BuildRequires:  vim-common
+BuildRequires:	xxd
 
 %description
 The ROCm Runtime Library is a thin, user-mode API that exposes the necessary
