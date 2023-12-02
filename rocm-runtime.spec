@@ -1,22 +1,24 @@
 #Image support is x86 only
-%ifarch x86_64
+%ifarch %{x86_64}
 %global enableimage 1
 %endif
-%global rocm_release 5.7
-%global rocm_patch 1
-%global rocm_version %{rocm_release}.%{rocm_patch}
+%global rocm_release %(echo %{version} |cut -d. -f1-2)
+%global rocm_patch %(echo %{version} |cut -d. -f3-)
 
 Name:       rocm-runtime
-Version:    %{rocm_version}
+Version:    5.7.1
 Release:    1
 Summary:    ROCm Runtime Library
 License:    NCSA
 URL:        https://github.com/RadeonOpenCompute/ROCR-Runtime
 Source0:    https://github.com/RadeonOpenCompute/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/ROCR-Runtime-rocm-%{version}.tar.gz
+Patch0:     rocm-runtime-no-.text-gc.patch
+Patch1:     rocm-runtime-linkage.patch
 #Patch0:     0002-fix-link-time-ordering-condition.patch
 
 BuildRequires:  clang-devel
 BuildRequires:  cmake
+BuildRequires:	ninja
 BuildRequires:  pkgconfig(libelf)
 BuildRequires:  pkgconfig(libhsakmt)
 BuildRequires:  pkgconfig(libdrm)
@@ -49,17 +51,18 @@ sed -i "s|\({CLANG_ARG_LIST}\)|\1 --hip-device-lib-path=%{_libdir}/amdgcn/bitcod
 	        src/image/blit_src/CMakeLists.txt \
 	        src/core/runtime/trap_handler/CMakeLists.txt
 
-%build
 cd src
 %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_LIBDIR=%{_lib} \
     -DINCLUDE_PATH_COMPATIBILITY=OFF \
-    %{?!enableimage:-DIMAGE_SUPPORT=OFF}
-%make_build
+    %{?!enableimage:-DIMAGE_SUPPORT=OFF} \
+    -G Ninja
 
+%build
+%ninja_build -C src/build
 
 %install
-%make_install -C build
+%ninja_install -C src/build
 
 %files
 %doc README.md
