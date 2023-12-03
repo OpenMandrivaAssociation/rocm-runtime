@@ -1,3 +1,5 @@
+%global __requires_exclude ^.*libelf.*$ 
+
 #Image support is x86 only
 %ifarch %{x86_64}
 %global enableimage 1
