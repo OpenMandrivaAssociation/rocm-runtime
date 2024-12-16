@@ -29,6 +29,8 @@ BuildRequires:  rocm-device-libs
 BuildRequires:  vim-common
 BuildRequires:	xxd
 
+Obsoletes:	%{mklibname hsakmt 1} < %{EVRD}
+
 %description
 The ROCm Runtime Library is a thin, user-mode API that exposes the necessary
 interfaces to access and interact with graphics hardware driven by the AMDGPU
@@ -39,7 +41,7 @@ applications to launch compute kernels directly to the graphics hardware.
 %package devel
 Summary: ROCm Runtime development files
 Requires: %{name}%{?_isa} = %{version}-%{release}
-Requires: hsakmt(rocm) = %{rocm_release}
+Obsoletes: %{mklibname -d hsakmt} < %{EVRD}
 
 %description devel
 ROCm Runtime development files
