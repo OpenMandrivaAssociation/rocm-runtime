@@ -1,0 +1,58 @@
+diff -up ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp.omv~ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp
+--- ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp.omv~	2024-12-16 01:22:20.778134950 +0000
++++ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_aql_queue.cpp	2024-12-16 01:22:45.838163354 +0000
+@@ -70,6 +70,10 @@
+ #include "core/inc/hsa_amd_tool_int.hpp"
+ #include "core/inc/amd_core_dump.hpp"
+ 
++#ifdef __aarch64__
++#define _mm_sfence __sync_synchronize
++#endif
++
+ namespace rocr {
+ namespace AMD {
+ 
+diff -up ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp.omv~ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp
+--- ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp.omv~	2024-12-16 01:20:39.378012515 +0000
++++ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/amd_blit_kernel.cpp	2024-12-16 01:20:55.608032980 +0000
+@@ -1274,7 +1274,11 @@ void BlitKernel::PopulateQueue(uint64_t
+   std::atomic_thread_fence(std::memory_order_release);
+   if (core::Runtime::runtime_singleton_->flag().dev_mem_queue() && !queue_->needsPcieOrdering()) {
+     // Ensure the packet body is written as header may get reordered when writing over PCIE
++#ifdef __x86_64__
+     _mm_sfence();
++#else
++    __sync_synchronize();
++#endif
+   }
+   queue_buffer[index & queue_bitmask_].header = kDispatchPacketHeader;
+ 
+diff -up ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/intercept_queue.cpp.omv~ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/intercept_queue.cpp
+--- ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/intercept_queue.cpp.omv~	2024-12-16 01:21:20.848064124 +0000
++++ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/intercept_queue.cpp	2024-12-16 01:21:44.588092689 +0000
+@@ -45,6 +45,10 @@
+ #include "core/util/utils.h"
+ #include "inc/hsa_api_trace.h"
+ 
++#ifdef __aarch64__
++#define _mm_sfence __sync_synchronize
++#endif
++
+ namespace rocr {
+ namespace core {
+ 
+diff -up ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/util/locks.h.omv~ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/util/locks.h
+--- ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/util/locks.h.omv~	2024-12-16 01:18:20.827822024 +0000
++++ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/util/locks.h	2024-12-16 01:18:35.967844345 +0000
+@@ -72,7 +72,11 @@ class HybridMutex {
+     while (!lock_.compare_exchange_strong(old, 1)) {
+       cnt--;
+       if (cnt > maxSpinIterPause) {
++#ifdef __x86_64__
+         _mm_pause();
++#else
++	__yield();
++#endif
+       } else if (cnt-- > maxSpinIterYield) {
+         os::YieldThread();
+       } else {

@@ -14,7 +14,6 @@ Summary:    ROCm Runtime Library
 License:    NCSA
 URL:        https://github.com/ROCm/ROCR-Runtime
 Source0:    https://github.com/ROCm/ROCR-Runtime/archive/refs/tags/rocm-%{version}.tar.gz#/ROCR-Runtime-rocm-%{version}.tar.gz
-Patch0:     rocm-runtime-no-.text-gc.patch
 
 BuildRequires:  clang-devel
 BuildRequires:  cmake
@@ -30,6 +29,10 @@ BuildRequires:  vim-common
 BuildRequires:	xxd
 
 Obsoletes:	%{mklibname hsakmt 1} < %{EVRD}
+
+%patchlist
+rocm-runtime-no-.text-gc.patch
+rocm-runtime-aarch64.patch
 
 %description
 The ROCm Runtime Library is a thin, user-mode API that exposes the necessary
