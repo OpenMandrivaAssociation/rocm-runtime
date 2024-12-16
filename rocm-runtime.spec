@@ -20,9 +20,9 @@ BuildRequires:  clang-devel
 BuildRequires:  cmake
 BuildRequires:	ninja
 BuildRequires:  pkgconfig(libelf)
-BuildRequires:  pkgconfig(libhsakmt)
 BuildRequires:  pkgconfig(libdrm)
 BuildRequires:  pkgconfig(libffi)
+BuildRequires:	pkgconfig(numa)
 BuildRequires:  cmake(LLD)
 BuildRequires:  llvm-devel
 BuildRequires:  rocm-device-libs
