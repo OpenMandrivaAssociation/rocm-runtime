@@ -1,12 +1,24 @@
-diff -up ROCR-Runtime-rocm-5.7.1/src/core/runtime/trap_handler/CMakeLists.txt.omv~ ROCR-Runtime-rocm-5.7.1/src/core/runtime/trap_handler/CMakeLists.txt
---- ROCR-Runtime-rocm-5.7.1/src/core/runtime/trap_handler/CMakeLists.txt.omv~	2023-12-02 23:06:42.107323090 +0100
-+++ ROCR-Runtime-rocm-5.7.1/src/core/runtime/trap_handler/CMakeLists.txt	2023-12-02 23:07:06.727584218 +0100
-@@ -65,7 +65,7 @@ function(gen_kernel_bc TARGET_ID INPUT_F
+diff -up ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt.omv~ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt
+--- ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt.omv~	2024-12-16 01:43:54.154349378 +0100
++++ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt	2024-12-16 01:44:01.371137757 +0100
+@@ -66,7 +66,7 @@ function(gen_kernel_bc TARGET_ID INPUT_F
    set(CODE_OBJECT "${OUTPUT_FILE}.hsaco")
  
    separate_arguments(CLANG_ARG_LIST UNIX_COMMAND
 -  "-x assembler -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -o ${CODE_OBJECT} ${INPUT_FILE}")
-+  "-x assembler -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -Wl,--no-gc-sections -o ${CODE_OBJECT} ${INPUT_FILE}")
++  "-x assembler -Wl,--no-gc-sections -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -o ${CODE_OBJECT} ${INPUT_FILE}")
  
    ## Add custom command to produce a code object file.
    add_custom_command(OUTPUT ${CODE_OBJECT} COMMAND clang ${CLANG_ARG_LIST}
+diff -up ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt.omv~ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt
+--- ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt.omv~	2024-12-16 01:44:53.072149056 +0100
++++ ROCR-Runtime-rocm-6.3.0/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt	2024-12-16 01:44:58.877994356 +0100
+@@ -68,7 +68,7 @@ function(gen_kernel_bc TARGET_ID INPUT_F
+ 	set(CODE_OBJECT "${OUTPUT_FILE}.hsaco")
+ 
+ 	# Separate clang arguments
+-	separate_arguments(CLANG_ARG_LIST UNIX_COMMAND "-x assembler -target amdgcn-amd-amdhsa -mcode-object-version=5 -fPIC -mcpu=${TARGET_ID} -o ${CODE_OBJECT} ${CMAKE_CURRENT_SOURCE_DIR}/${INPUT_FILE}")
++	separate_arguments(CLANG_ARG_LIST UNIX_COMMAND "-x assembler -Wl,--no-gc-sections -target amdgcn-amd-amdhsa -mcode-object-version=5 -fPIC -mcpu=${TARGET_ID} -o ${CODE_OBJECT} ${CMAKE_CURRENT_SOURCE_DIR}/${INPUT_FILE}")
+ 
+ 	# Add custom command to generate the kernel bitcode
+ 	add_custom_command(OUTPUT ${CODE_OBJECT} COMMAND clang ${CLANG_ARG_LIST}
