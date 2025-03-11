@@ -8,7 +8,7 @@
 %global rocm_patch %(echo %{version} |cut -d. -f3-)
 
 Name:       rocm-runtime
-Version:    6.3.0
+Version:    6.3.3
 Release:    1
 Summary:    ROCm Runtime Library
 License:    NCSA
