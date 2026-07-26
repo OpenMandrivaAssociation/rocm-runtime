@@ -1,0 +1,54 @@
+diff -Naur a/runtime/hsa-runtime/CMakeLists.txt b/runtime/hsa-runtime/CMakeLists.txt
+--- a/runtime/hsa-runtime/CMakeLists.txt	2026-07-15 16:25:37.229021500 +0200
++++ b/runtime/hsa-runtime/CMakeLists.txt	2026-07-24 02:32:32.708384459 +0200
+@@ -325,6 +325,9 @@
+                    image/addrlib/src/core/addrlib3.cpp
+                    image/addrlib/src/core/addrobject.cpp
+                    image/addrlib/src/core/addrelemlib.cpp
++                   image/addrlib/src/r800/ciaddrlib.cpp
++                   image/addrlib/src/r800/egbaddrlib.cpp
++                   image/addrlib/src/r800/siaddrlib.cpp
+                    image/addrlib/src/gfx9/gfx9addrlib.cpp
+                    image/addrlib/src/gfx10/gfx10addrlib.cpp
+                    image/addrlib/src/gfx11/gfx11addrlib.cpp
+diff -Naur a/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp b/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp
+--- a/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp	2026-07-24 02:32:32.679459801 +0200
++++ b/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp	2026-07-24 02:32:32.708168163 +0200
+@@ -185,6 +185,25 @@
+ 
+         switch (pCreateIn->chipEngine)
+         {
++            case CIASICIDGFXENGINE_SOUTHERNISLAND:
++                // OpenMandriva: restored from ROCm 6.4.4 r800 addrlib for
++                // SI/CI/VI/Polaris (gfx803 etc.) image/texture support.
++                switch (pCreateIn->chipFamily)
++                {
++                    case FAMILY_SI:
++                        pLib = SiHwlInit(&client);
++                        break;
++                    case FAMILY_VI:
++                    case FAMILY_CZ: // VI based fusion
++                    case FAMILY_CI:
++                    case FAMILY_KV: // CI based fusion
++                        pLib = CiHwlInit(&client);
++                        break;
++                    default:
++                        pLib = NULL;
++                        break;
++                }
++                break;
+             case CIASICIDGFXENGINE_ARCTICISLAND:
+                 switch (pCreateIn->chipFamily)
+                 {
+diff -Naur a/runtime/hsa-runtime/image/addrlib/src/core/addrlib.h b/runtime/hsa-runtime/image/addrlib/src/core/addrlib.h
+--- a/runtime/hsa-runtime/image/addrlib/src/core/addrlib.h	2026-07-15 16:25:37.243021700 +0200
++++ b/runtime/hsa-runtime/image/addrlib/src/core/addrlib.h	2026-07-24 02:32:32.708077381 +0200
+@@ -403,6 +403,8 @@
+     ElemLib*    m_pElemLib;             ///< Element Lib pointer
+ };
+ 
++Lib* SiHwlInit   (const Client* pClient);
++Lib* CiHwlInit   (const Client* pClient);
+ Lib* Gfx9HwlInit (const Client* pClient);
+ Lib* Gfx10HwlInit(const Client* pClient);
+ Lib* Gfx11HwlInit(const Client* pClient);

@@ -1,0 +1,109 @@
+--- a/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:50:20.447513182 +0200
++++ b/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:50:20.486204678 +0200
+@@ -225,7 +225,6 @@
+     size_t image_data_row_pitch,
+     size_t image_data_slice_pitch,
+     hsa_ext_image_data_info_t& image_info) const {
+-  ADDR_COMPUTE_SURFACE_INFO_OUTPUT out = {0};
+   hsa_profile_t profile;
+ 
+   hsa_status_t status = HSA::hsa_agent_get_info(component, HSA_AGENT_INFO_PROFILE, &profile);
+@@ -237,26 +236,55 @@
+                 desc.geometry != HSA_EXT_IMAGE_GEOMETRY_1DB)?
+       Image::TileMode::TILED : Image::TileMode::LINEAR;
+   }
+-  if (!GetAddrlibSurfaceInfo(component, desc, tileMode,
+-        image_data_row_pitch, image_data_slice_pitch, out,
+-        num_mipmap_levels ? num_mipmap_levels : 1)) {
+-    return HSA_STATUS_ERROR;
+-  }
+ 
+-  size_t rowPitch   = (out.bpp >> 3) * out.pitch;
+-  size_t slicePitch = rowPitch * out.height;
+-  if (desc.geometry != HSA_EXT_IMAGE_GEOMETRY_1DB &&
+-      image_data_layout == HSA_EXT_IMAGE_DATA_LAYOUT_LINEAR &&
+-      ((image_data_row_pitch && (rowPitch != image_data_row_pitch)) ||
+-       (image_data_slice_pitch && (slicePitch != image_data_slice_pitch)))) {
+-    return static_cast<hsa_status_t>(HSA_EXT_STATUS_ERROR_IMAGE_PITCH_UNSUPPORTED);
++  // ADDR v1 (SI/CI/VI) sizes a single level only. Sum the mip chain ourselves.
++  const uint32_t levels = num_mipmap_levels ? num_mipmap_levels : 1;
++  size_t total_size = 0;
++  size_t max_align = 0;
++
++  for (uint32_t lvl = 0; lvl < levels; ++lvl) {
++    hsa_ext_image_descriptor_t level_desc = desc;
++    level_desc.width = std::max<size_t>(1, desc.width >> lvl);
++    if (desc.height != 0)
++      level_desc.height = std::max<size_t>(1, desc.height >> lvl);
++    if (desc.depth != 0)
++      level_desc.depth = std::max<size_t>(1, desc.depth >> lvl);
++    if (desc.array_size != 0 &&
++        (desc.geometry == HSA_EXT_IMAGE_GEOMETRY_1DA ||
++         desc.geometry == HSA_EXT_IMAGE_GEOMETRY_2DA ||
++         desc.geometry == HSA_EXT_IMAGE_GEOMETRY_2DADEPTH)) {
++      // Array size is not reduced per mip level.
++      level_desc.array_size = desc.array_size;
++    }
++
++    // Row/slice pitch only apply to level 0 linear images.
++    size_t row_pitch = (lvl == 0) ? image_data_row_pitch : 0;
++    size_t slice_pitch = (lvl == 0) ? image_data_slice_pitch : 0;
++
++    ADDR_COMPUTE_SURFACE_INFO_OUTPUT out = {0};
++    if (!GetAddrlibSurfaceInfo(component, level_desc, tileMode,
++          row_pitch, slice_pitch, out, /*num_mipmap_levels=*/1)) {
++      return HSA_STATUS_ERROR;
++    }
++
++    if (lvl == 0) {
++      size_t rowPitch   = (out.bpp >> 3) * out.pitch;
++      size_t slicePitch = rowPitch * out.height;
++      if (desc.geometry != HSA_EXT_IMAGE_GEOMETRY_1DB &&
++          image_data_layout == HSA_EXT_IMAGE_DATA_LAYOUT_LINEAR &&
++          ((image_data_row_pitch && (rowPitch != image_data_row_pitch)) ||
++           (image_data_slice_pitch && (slicePitch != image_data_slice_pitch)))) {
++        return static_cast<hsa_status_t>(HSA_EXT_STATUS_ERROR_IMAGE_PITCH_UNSUPPORTED);
++      }
++    }
++
++    total_size += out.surfSize;
++    max_align = std::max(max_align, static_cast<size_t>(out.baseAlign));
+   }
+ 
+-  image_info.size = out.surfSize;
+-  image_info.alignment = out.baseAlign;
++  image_info.size = total_size;
++  image_info.alignment = max_align;
+   if (image_info.size == 0 || image_info.alignment == 0) {
+-    // Can happen for 1D buffer textures when height/depth are left 0 or
+-    // when addrlib is given an incomplete descriptor from HIP.
+     return HSA_STATUS_ERROR;
+   }
+ 
+@@ -814,14 +842,24 @@
+     SQ_IMG_RSRC_WORD6 word6;
+     SQ_IMG_RSRC_WORD7 word7;
+ 
++    // Level-0 layout (SRD pitches/tiling) from addrlib; total size from full chain.
+     ADDR_COMPUTE_SURFACE_INFO_OUTPUT out = {0};
+     if (!GetAddrlibSurfaceInfo(mipmap.component, mipmap.desc, mipmap.tile_mode,
+                                mipmap.row_pitch, mipmap.slice_pitch, out,
+-                               mipmap.num_levels)) {
++                               /*num_mipmap_levels=*/1)) {
+       return HSA_STATUS_ERROR;
+     }
+     mipmap.addr_output.addr1 = out;
+-    mipmap.size = out.surfSize;
++
++    hsa_ext_image_data_info_t chain_info = {0};
++    hsa_status_t st = CalculateImageSizeAndAlignment(
++        mipmap.component, mipmap.desc,
++        (mipmap.tile_mode == Image::TileMode::LINEAR)
++            ? HSA_EXT_IMAGE_DATA_LAYOUT_LINEAR
++            : HSA_EXT_IMAGE_DATA_LAYOUT_OPAQUE,
++        mipmap.num_levels, mipmap.row_pitch, mipmap.slice_pitch, chain_info);
++    if (st != HSA_STATUS_SUCCESS) return st;
++    mipmap.size = chain_info.size;
+ 
+     assert((out.bpp / 8) == mipmap_prop.element_size);
+ 

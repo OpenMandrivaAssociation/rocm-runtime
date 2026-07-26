@@ -1,0 +1,26 @@
+--- a/runtime/hsa-runtime/image/image_runtime.cpp	2026-07-24 02:47:50.238842106 +0200
++++ b/runtime/hsa-runtime/image/image_runtime.cpp	2026-07-24 02:47:50.277118959 +0200
+@@ -849,7 +849,9 @@
+     return status;
+   }
+   uint32_t major_ver = MajorVerFromDevID(chip_id);
+-  if (major_ver < 9) {
++  // OpenMandriva: GFX8 has BASE_LEVEL/LAST_LEVEL in SQ_IMG_RSRC_WORD3;
++  // allow mip level views (PopulateMipLevelSrd) on major_ver >= 8.
++  if (major_ver < 8) {
+     debug_print("ERROR: Mip level views not supported on GFX%u hardware\n", major_ver);
+     return HSA_STATUS_ERROR_INVALID_ARGUMENT;
+   }
+--- a/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:47:50.242173153 +0200
++++ b/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:47:50.277265431 +0200
+@@ -1301,6 +1301,10 @@
+   in.numMipLevels = (num_mipmap_levels == 0) ? 1 : num_mipmap_levels;
+   // SI+: pow2 pad required for mip chains (incl. level 0 when mipped).
+   in.flags.pow2Pad = (in.numMipLevels > 1) ? 1 : 0;
++  // SI+: basePitch is required when computing sizes for mip levels.
++  if (in.numMipLevels > 1) {
++    in.basePitch = in.width;
++  }
+   in.flags.texture = 1;
+   in.flags.noStencil = 1;
+   in.flags.opt4Space = 0;

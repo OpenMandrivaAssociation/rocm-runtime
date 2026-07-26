@@ -1,0 +1,11 @@
+--- a/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt	2026-07-15 16:25:37.240021700 +0200
++++ b/runtime/hsa-runtime/core/runtime/trap_handler/CMakeLists.txt	2026-07-23 21:53:30.585908330 +0200
+@@ -66,7 +66,7 @@
+   set(CODE_OBJECT "${OUTPUT_FILE}.hsaco")
+ 
+   separate_arguments(CLANG_ARG_LIST UNIX_COMMAND
+-  "-x assembler -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -o ${CODE_OBJECT} ${INPUT_FILE}")
++  "-x assembler -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -Wl,--no-gc-sections -o ${CODE_OBJECT} ${INPUT_FILE}")
+ 
+   ## Add custom command to produce a code object file.
+   add_custom_command(OUTPUT ${CODE_OBJECT} COMMAND clang ${CLANG_ARG_LIST}

@@ -1,0 +1,11 @@
+--- a/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt	2026-07-15 16:25:37.237021700 +0200
++++ b/runtime/hsa-runtime/core/runtime/blit_shaders/CMakeLists.txt	2026-07-23 21:53:30.586989583 +0200
+@@ -68,7 +68,7 @@
+ 	set(CODE_OBJECT "${OUTPUT_FILE}.hsaco")
+ 
+ 	# Separate clang arguments
+-	separate_arguments(CLANG_ARG_LIST UNIX_COMMAND "-x assembler -target amdgcn-amd-amdhsa -mcode-object-version=5 -fPIC -mcpu=${TARGET_ID} -o ${CODE_OBJECT} ${CMAKE_CURRENT_SOURCE_DIR}/${INPUT_FILE}")
++	separate_arguments(CLANG_ARG_LIST UNIX_COMMAND "-x assembler -target amdgcn-amd-amdhsa -mcode-object-version=5 -fPIC -mcpu=${TARGET_ID} -Wl,--no-gc-sections -o ${CODE_OBJECT} ${CMAKE_CURRENT_SOURCE_DIR}/${INPUT_FILE}")
+ 
+ 	# Add custom command to generate the kernel bitcode
+ 	add_custom_command(OUTPUT ${CODE_OBJECT} COMMAND clang ${CLANG_ARG_LIST}

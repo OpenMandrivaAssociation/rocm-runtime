@@ -1,0 +1,11 @@
+--- a/runtime/hsa-runtime/image/blit_src/CMakeLists.txt	2026-07-23 21:54:03.984664153 +0200
++++ b/runtime/hsa-runtime/image/blit_src/CMakeLists.txt	2026-07-23 21:54:03.984628263 +0200
+@@ -72,7 +72,7 @@
+     set (WIN_CL_COMPILE_OPTION "-fshort-wchar")
+   endif()
+   separate_arguments(CLANG_ARG_LIST UNIX_COMMAND
+-    "-O2 -x cl -Xclang -finclude-default-header -cl-denorms-are-zero -cl-std=CL2.0
++    "-O2 -x cl -Xclang -finclude-default-header -cl-denorms-are-zero -cl-std=CL2.0 --rocm-device-lib-path=@ROCM_DEVICE_LIB_PATH@
+     -target amdgcn-amd-amdhsa -mcpu=${TARGET_ID} -mcode-object-version=4 ${WIN_CL_COMPILE_OPTION}
+     -o ${OUTPUT_FILE} ${INPUT_FILE}")
+ 

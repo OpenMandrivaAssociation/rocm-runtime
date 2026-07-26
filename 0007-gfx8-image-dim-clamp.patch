@@ -1,0 +1,58 @@
+diff -Naur a/runtime/hsa-runtime/image/image_manager_kv.cpp b/runtime/hsa-runtime/image/image_manager_kv.cpp
+--- a/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-15 16:25:37.252022000 +0200
++++ b/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:36:11.158529840 +0200
+@@ -252,9 +252,12 @@
+   }
+ 
+   image_info.size = out.surfSize;
+-  assert(image_info.size != 0);
+   image_info.alignment = out.baseAlign;
+-  assert(image_info.alignment != 0);
++  if (image_info.size == 0 || image_info.alignment == 0) {
++    // Can happen for 1D buffer textures when height/depth are left 0 or
++    // when addrlib is given an incomplete descriptor from HIP.
++    return HSA_STATUS_ERROR;
++  }
+ 
+   return HSA_STATUS_SUCCESS;
+ }
+@@ -1104,27 +1107,33 @@
+   in.bpp = static_cast<unsigned int>(image_prop.element_size) * 8;
+   in.numSamples = 1;
+   in.width = width;
+-  in.height = height;
+-  in.numSlices = num_slice;
++  // Addrlib v1 (SI/CI/VI) rejects 0 height/slices for 1D/buffer textures.
++  in.height = (height == 0) ? 1 : height;
++  in.numSlices = (num_slice == 0) ? 1 : num_slice;
+   in.flags.texture = 1;
+   in.flags.noStencil = 1;
+   in.flags.opt4Space = 0;
+   in.tileType = ADDR_NON_DISPLAYABLE;
+   in.tileIndex = -1;
+ 
++  if (image_prop.element_size == 0 || in.bpp == 0 || in.width == 0) {
++    return false;
++  }
++
+   if (image_data_row_pitch != 0) {
+     in.width = image_data_row_pitch / image_prop.element_size;
+-//    in.pitchAlign  = image_data_row_pitch / image_prop.element_size;
+-//    in.heightAlign = image_data_slice_pitch / image_data_row_pitch;
++    if (in.width == 0) return false;
+   }
+ 
+   if (ADDR_OK != AddrComputeSurfaceInfo(addr_lib_, &in, &out)) {
+     return false;
+   }
+ 
+-  assert(out.tileIndex != -1);
++  if (out.tileIndex == -1 || out.surfSize == 0 || out.baseAlign == 0) {
++    return false;
++  }
+ 
+-  return (out.tileIndex != -1) ? true : false;
++  return true;
+ }
+ 
+ size_t ImageManagerKv::CalWorkingSizeBytes(hsa_ext_image_geometry_t geometry,

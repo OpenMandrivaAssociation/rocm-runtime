@@ -1,2 +1,4 @@
 sources:
   ROCR-Runtime-rocm-6.3.3.tar.gz: 6bbbbb912050578f483695e0cbfcedd6dd6e9c29
+  r800-addrlib-rocm-6.4.4.tar.gz: ad35dad4f71ec175b741166a8dee6cd9156877a4
+  rocr-runtime-7.14.0.tar.gz: 3692847a63fe6d4ab6d8a3b7feaca2b038041028

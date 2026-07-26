@@ -1,0 +1,93 @@
+diff -Naur a/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp b/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp
+--- a/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp	2026-07-15 16:25:37.243021700 +0200
++++ b/runtime/hsa-runtime/image/addrlib/src/core/addrlib.cpp	2026-07-24 02:23:45.669767917 +0200
+@@ -208,12 +208,15 @@
+                         pLib = Gfx12HwlInit(&client);
+                         break;
+                     default:
+-                        ADDR_ASSERT_ALWAYS();
++                        // Pre-gfx9 families (e.g. FAMILY_VI / Polaris) no longer
++                        // have an HWL in ROCm 7 addrlib. Fail gracefully so the
++                        // image manager can skip this agent.
++                        pLib = NULL;
+                         break;
+                 }
+                 break;
+             default:
+-                ADDR_ASSERT_ALWAYS();
++                pLib = NULL;
+                 break;
+         }
+     }
+diff -Naur a/runtime/hsa-runtime/image/image_runtime.cpp b/runtime/hsa-runtime/image/image_runtime.cpp
+--- a/runtime/hsa-runtime/image/image_runtime.cpp	2026-07-15 16:25:37.252022000 +0200
++++ b/runtime/hsa-runtime/image/image_runtime.cpp	2026-07-24 02:23:45.669862258 +0200
+@@ -43,6 +43,7 @@
+ #include "image_runtime.h"
+ 
+ #include <assert.h>
++#include <stdio.h>
+ #include <cinttypes>
+ #include <climits>
+ #include <cstring>
+@@ -220,6 +221,15 @@
+ 
+     if (hsa_error_code != HSA_STATUS_SUCCESS) {
+       delete image_manager;
++      // ROCm 7 dropped pre-gfx9 addrlib HWLs. Allow pure-compute agents
++      // (Polaris/gfx803 etc.) to proceed without image support.
++      if (major_ver < 9) {
++        fprintf(stderr,
++                "rocr: skipping image support on gfx major %u "
++                "(pre-gfx9; compute-only)\n",
++                major_ver);
++        return HSA_STATUS_SUCCESS;
++      }
+       return hsa_error_code;
+     }
+ 
+@@ -279,7 +289,12 @@
+   }
+ 
+   assert(instance->kernarg_pool_.handle != 0);
+-  assert(instance->image_managers_.size() != 0);
++  // Empty image_managers_ is OK when all GPUs are pre-gfx9 (compute-only).
++  if (instance->image_managers_.empty()) {
++    fprintf(stderr,
++            "rocr: ImageRuntime active with no image managers "
++            "(compute-only pre-gfx9 GPUs)\n");
++  }
+ 
+   get_instance().store(instance, std::memory_order_release);
+   return instance;
+@@ -359,11 +374,15 @@
+     return status;
+   }
+ 
+-  // Image is only supported on a GPU device.
++  // Image is only supported on a GPU device with a working image manager.
++  // Pre-gfx9 agents may have no manager (compute-only); report zeros.
+ 
+   if (device_type == HSA_DEVICE_TYPE_GPU) {
+-    image_manager(component)->GetImageInfoMaxDimension(
+-        component, geometry, width, height, depth, array_size);
++    ImageManager* manager = image_manager(component);
++    if (manager != NULL) {
++      manager->GetImageInfoMaxDimension(
++          component, geometry, width, height, depth, array_size);
++    }
+   }
+ 
+   if (value_u32_v3 != NULL) {
+@@ -392,7 +411,10 @@
+ 
+   if (device_type == HSA_DEVICE_TYPE_GPU) {
+     ImageManager* manager = image_manager(component);
+-    capability = manager->GetImageProperty(component, format, geometry).cap;
++    if (manager != NULL)
++      capability = manager->GetImageProperty(component, format, geometry).cap;
++    else
++      capability = 0;
+   } else {
+     // Image is only supported on a GPU device.
+     capability = 0;
