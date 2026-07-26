@@ -5,6 +5,7 @@
 Name:		rocm-runtime
 Version:	7.14.0
 Release:	1
+%{!?rocm_llvm_maj_ver:%global rocm_llvm_maj_ver 23}
 Summary:	ROCm Runtime Library (ROCR / HSA)
 License:	NCSA
 Group:		System/Libraries
@@ -36,8 +37,8 @@ Patch9:		0010-gfx8-mip-chain-size.patch
 
 BuildRequires:	rocm-rpm-macros
 BuildRequires:	clang >= %{rocm_llvm_maj_ver}
-BuildRequires:	libclang-devel >= %{rocm_llvm_maj_ver}
-BuildRequires:	libllvm-devel >= %{rocm_llvm_maj_ver}
+BuildRequires:	lib64clang-devel >= %{rocm_llvm_maj_ver}
+BuildRequires:	lib64llvm-devel >= %{rocm_llvm_maj_ver}
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(libelf)
