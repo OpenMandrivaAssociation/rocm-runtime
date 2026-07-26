@@ -37,8 +37,8 @@ Patch9:		0010-gfx8-mip-chain-size.patch
 
 BuildRequires:	rocm-rpm-macros
 BuildRequires:	clang >= %{rocm_llvm_maj_ver}
-BuildRequires:	lib64clang-devel >= %{rocm_llvm_maj_ver}
-BuildRequires:	lib64llvm-devel >= %{rocm_llvm_maj_ver}
+BuildRequires:	clang-devel >= %{rocm_llvm_maj_ver}
+BuildRequires:	llvm-devel >= %{rocm_llvm_maj_ver}
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	pkgconfig(libelf)
