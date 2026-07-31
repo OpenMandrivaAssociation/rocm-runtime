@@ -4,7 +4,7 @@
 
 Name:		rocm-runtime
 Version:	7.14.0
-Release:	1
+Release:	3
 %{!?rocm_llvm_maj_ver:%global rocm_llvm_maj_ver 23}
 Summary:	ROCm Runtime Library (ROCR / HSA)
 License:	NCSA
@@ -30,6 +30,9 @@ Patch7:		0008-gfx8-restore-mipmaps.patch
 Patch8:		0009-gfx8-mip-level-views.patch
 # Sum per-level sizes for mip chains (ADDR v1 only sizes one level)
 Patch9:		0010-gfx8-mip-chain-size.patch
+# Portable fallbacks for _mm_sfence/_mm_pause/_mm_clflush on non-x86
+# (aarch64, riscv64, loongarch64, …)
+Patch10:	rocm-runtime-non-x86-intrinsics.patch
 
 %ifarch %{x86_64}
 %global enableimage 1
@@ -53,8 +56,6 @@ BuildRequires:	vim-common
 
 Obsoletes:	%{mklibname hsakmt 1} < %{EVRD}
 Provides:	%{mklibname hsakmt 1} = %{EVRD}
-
-ExclusiveArch:	%{x86_64} %{aarch64}
 
 %description
 The ROCm Runtime Library (libhsa-runtime64) is a thin, user-mode API that

@@ -1,0 +1,49 @@
+--- a/runtime/hsa-runtime/core/util/utils.h
++++ b/runtime/hsa-runtime/core/util/utils.h
+@@ -66,6 +66,30 @@
+ #if defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
+ #include "intrin.h"
+ #endif
++#if !defined(__i386__) && !defined(__x86_64__) && !defined(_M_IX86) && !defined(_M_X64)
++// Portable stand-ins for the x86 helpers used throughout ROCR (sfence for WC
++// flush ordering, pause in spin loops, clflush in FlushCpuCache).
++static inline __attribute__((always_inline)) void _mm_sfence(void) {
++  __sync_synchronize();
++}
++static inline __attribute__((always_inline)) void _mm_mfence(void) {
++  __sync_synchronize();
++}
++static inline __attribute__((always_inline)) void _mm_pause(void) {
++#if defined(__aarch64__)
++  __asm__ __volatile__("yield" ::: "memory");
++#else
++  __asm__ __volatile__("" ::: "memory");
++#endif
++}
++static inline __attribute__((always_inline)) void _mm_clflush(const void *p) {
++#if defined(__aarch64__)
++  __asm__ __volatile__("dc civac, %0" : : "r"(p) : "memory");
++#else
++  (void)p;
++#endif
++}
++#endif
+ 
+ namespace rocr {
+ extern FILE* log_file;
+--- a/runtime/hsa-runtime/image/util.h
++++ b/runtime/hsa-runtime/image/util.h
+@@ -77,12 +77,8 @@
+ #include "mm_malloc.h"
+ #if defined(__i386__) || defined(__x86_64__)
+ #include <x86intrin.h>
+-#elif defined(__loongarch64)
+-#else
+-#error                                                                                             \
+-    "Processor not identified.  " \
+-            "Need to provide a lightweight approximate clock interface (aka __rdtsc())."
+ #endif
++/* Non-x86: no x86intrin; image code does not need __rdtsc. */
+ 
+ namespace rocr {
+ namespace image {
