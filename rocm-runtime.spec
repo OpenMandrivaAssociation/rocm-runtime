@@ -3,14 +3,14 @@
 %global __requires_exclude cmake\\([Ll]ib[Ee]lf\\)
 
 Name:		rocm-runtime
-Version:	7.14.0
-Release:	3
+Version:	10.0.0
+Release:	1
 %{!?rocm_llvm_maj_ver:%global rocm_llvm_maj_ver 23}
 Summary:	ROCm Runtime Library (ROCR / HSA)
 License:	NCSA
 Group:		System/Libraries
 URL:		https://github.com/ROCm/rocm-systems
-Source0:	https://github.com/ROCm/rocm-systems/releases/download/therock-7.14/rocr-runtime.tar.gz#/rocr-runtime-%{version}.tar.gz
+Source0:	https://github.com/ROCm/rocm-systems/releases/download/therock-10.0/rocr-runtime.tar.gz#/rocr-runtime-%{version}.tar.gz
 # SI/CI/VI (r800) addrlib HWL removed in ROCm 7; taken from ROCR-Runtime rocm-6.4.4
 Source1:	r800-addrlib-rocm-6.4.4.tar.gz
 Patch0:		0001-device-lib-path.patch
@@ -60,7 +60,7 @@ Provides:	%{mklibname hsakmt 1} = %{EVRD}
 %description
 The ROCm Runtime Library (libhsa-runtime64) is a thin, user-mode API that
 exposes interfaces to access graphics hardware driven by the AMDGPU driver
-and AMDKFD. The former hsakmt thunk is included. Built from TheRock 7.14
+and AMDKFD. The former hsakmt thunk is included. Built from TheRock 10.0
 sources.
 
 OpenMandriva restores pre-Vega support that upstream ROCm 7 removed:
@@ -83,7 +83,7 @@ Headers and CMake packages for the ROCm HSA runtime.
 
 %prep
 %autosetup -n rocr-runtime -p1
-# r800 HWL sources (not in TheRock 7.14 tarball)
+# r800 HWL sources (not in TheRock 10.0 tarball)
 tar -xzf %{SOURCE1} -C runtime/hsa-runtime/image/addrlib/src
 test -f runtime/hsa-runtime/image/addrlib/src/r800/ciaddrlib.cpp
 sed -i -e 's|@ROCM_DEVICE_LIB_PATH@|%{_libdir}/amdgcn/bitcode|g' \
