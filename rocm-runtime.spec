@@ -1,10 +1,11 @@
-# cmake.req scans for find_dependency(LibElf) even though that branch is
-# dead for the shared-library build (_is_hsa_runtime_dynamic = ON).
-%global __requires_exclude cmake\\([Ll]ib[Ee]lf\\)
+# cmake.req scans find_dependency(LibElf) (dead shared-lib branch) and
+# find_dependency(NUMA) in hsakmt-config.cmake. libnuma only ships
+# pkgconfig(numa); nothing provides cmake(numa)/cmake(NUMA).
+%global __requires_exclude cmake\\(([Ll]ib[Ee]lf|[Nn][Uu][Mm][Aa])\\)
 
 Name:		rocm-runtime
 Version:	10.0.0
-Release:	1
+Release:	2
 %{!?rocm_llvm_maj_ver:%global rocm_llvm_maj_ver 23}
 Summary:	ROCm Runtime Library (ROCR / HSA)
 License:	NCSA
@@ -73,8 +74,9 @@ on older AMD GPUs without new hardware.
 %package devel
 Summary:	ROCm Runtime development files
 Group:		Development/C
-Requires:	%{name}%{?_isa} = %{version}-%{release}
+Requires:	%{name}%{?_isa} = %{EVRD}
 Requires:	pkgconfig(libelf)
+Requires:	pkgconfig(numa)
 Obsoletes:	%{mklibname -d hsakmt} < %{EVRD}
 Provides:	%{mklibname -d hsakmt} = %{EVRD}
 
@@ -100,9 +102,11 @@ sed -i -e 's|@ROCM_DEVICE_LIB_PATH@|%{_libdir}/amdgcn/bitcode|g' \
 %install
 %ninja_install -C build
 # Shared build never needs LibElf for consumers; cmake.req still scans the string.
-# Remove the dead branch so packaging and consumers stay clean.
+# NUMA is pkgconfig-only on this distro (no cmake(NUMA) package).
 sed -i -e '/find_dependency(LibElf)/d' \
 	%{buildroot}%{_libdir}/cmake/hsa-runtime64/hsa-runtime64-config.cmake
+sed -i -e '/find_dependency(NUMA)/d' \
+	%{buildroot}%{_libdir}/cmake/hsakmt/hsakmt-config.cmake
 
 %files
 %doc README.md
