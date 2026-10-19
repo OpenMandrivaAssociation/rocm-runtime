@@ -1,5 +1,5 @@
---- a/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:50:20.447513182 +0200
-+++ b/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:50:20.486204678 +0200
+--- a/runtime/hsa-runtime/image/image_manager_kv.cpp
++++ b/runtime/hsa-runtime/image/image_manager_kv.cpp
 @@ -225,7 +225,6 @@
      size_t image_data_row_pitch,
      size_t image_data_slice_pitch,

@@ -1,6 +1,6 @@
---- a/runtime/hsa-runtime/image/image_runtime.cpp	2026-07-24 02:47:50.238842106 +0200
-+++ b/runtime/hsa-runtime/image/image_runtime.cpp	2026-07-24 02:47:50.277118959 +0200
-@@ -849,7 +849,9 @@
+--- a/runtime/hsa-runtime/image/image_runtime.cpp
++++ b/runtime/hsa-runtime/image/image_runtime.cpp
+@@ -854,7 +854,9 @@
      return status;
    }
    uint32_t major_ver = MajorVerFromDevID(chip_id);
@@ -11,8 +11,8 @@
      debug_print("ERROR: Mip level views not supported on GFX%u hardware\n", major_ver);
      return HSA_STATUS_ERROR_INVALID_ARGUMENT;
    }
---- a/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:47:50.242173153 +0200
-+++ b/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:47:50.277265431 +0200
+--- a/runtime/hsa-runtime/image/image_manager_kv.cpp
++++ b/runtime/hsa-runtime/image/image_manager_kv.cpp
 @@ -1301,6 +1301,10 @@
    in.numMipLevels = (num_mipmap_levels == 0) ? 1 : num_mipmap_levels;
    // SI+: pow2 pad required for mip chains (incl. level 0 when mipped).

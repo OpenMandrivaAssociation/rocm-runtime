@@ -1,5 +1,5 @@
---- a/runtime/hsa-runtime/image/image_manager_kv.h	2026-07-15 16:25:37.252022000 +0200
-+++ b/runtime/hsa-runtime/image/image_manager_kv.h	2026-07-24 02:43:00.424438932 +0200
+--- a/runtime/hsa-runtime/image/image_manager_kv.h
++++ b/runtime/hsa-runtime/image/image_manager_kv.h
 @@ -147,7 +147,8 @@
                               Image::TileMode tileMode,
                               size_t image_data_row_pitch,
@@ -10,8 +10,8 @@
  
    size_t CalWorkingSizeBytes(hsa_ext_image_geometry_t geometry,
                               hsa_dim3_t size_pixel,
---- a/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:43:00.408934105 +0200
-+++ b/runtime/hsa-runtime/image/image_manager_kv.cpp	2026-07-24 02:43:00.422743145 +0200
+--- a/runtime/hsa-runtime/image/image_manager_kv.cpp
++++ b/runtime/hsa-runtime/image/image_manager_kv.cpp
 @@ -238,7 +238,8 @@
        Image::TileMode::TILED : Image::TileMode::LINEAR;
    }
