@@ -76,7 +76,7 @@
 -    HSAKMT_CALL(hsaKmtQueueRingDoorbell(queue_id_, value));
 -  } else {
 -    // Hardware doorbell supports AQL semantics.
--    _mm_sfence();
+-    store_fence();
 -    *(signal_.hardware_doorbell_ptr) = uint64_t(value);
 -    /* signal_ is allocated as uncached so we do not need read-back to flush WC */
 +  if (doorbell_type_ == 2) {
@@ -85,7 +85,7 @@
 +      HSAKMT_CALL(hsaKmtQueueRingDoorbell(queue_id_, value));
 +    } else {
 +      // Hardware doorbell supports AQL semantics (64-bit write).
-+      _mm_sfence();
++      store_fence();
 +      *(signal_.hardware_doorbell_ptr) = uint64_t(value);
 +      /* signal_ is allocated as uncached so we do not need read-back to flush WC */
 +    }
